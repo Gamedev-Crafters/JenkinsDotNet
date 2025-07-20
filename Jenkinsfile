@@ -1,6 +1,10 @@
 pipeline {
     agent any
     
+    parameters {
+        choice(name: 'BUILD_CONFIG', choices: ['Release', 'Debug'], description: 'Build configuration')
+    }
+    
     stages {
         stage ('Checkout') {
             steps {
@@ -11,7 +15,7 @@ pipeline {
         
         stage ('Test') {
             steps {
-                bat "dotnet test --configuration Release --no-build --logger trx --results-directory TestResults"
+                bat "dotnet test --configuration ${BUILD_CONFIG} --no-build --logger trx --results-directory TestResults"
             }
         }
         
@@ -23,14 +27,14 @@ pipeline {
         
         stage('Build') {
             steps {
-                bat "dotnet build --configuration Release --no-restore"
+                bat "dotnet build --configuration ${BUILD_CONFIG} --no-restore"
             }
         }
         
         stage('Publish') {
             steps {
                 bat """
-                    dotnet publish --configuration Release --no-build --output "Publish" --framework net6.0
+                    dotnet publish --configuration ${BUILD_CONFIG} --no-build --output "Publish" --framework net6.0
                 """
                 archiveArtifacts artifacts: 'Publish/**/*', fingerprint: true
             }
